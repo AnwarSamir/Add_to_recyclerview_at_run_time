@@ -2,24 +2,31 @@ package com.asi.addtorecyclerviewatruntime;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import com.borax12.materialdaterangepicker.time.RadialPickerLayout;
+import com.borax12.materialdaterangepicker.time.TimePickerDialog;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.Calendar;
+
+public class MainActivity extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
     private Button mAddButton;
     final Context context=this;
     private ArrayList<FeedItem> feedlist;
     private MyAdapter myAdapter;
     private RecyclerView mRecyclerView;
+    TextView mMailEditText, mNameEditText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public void IntialDeclaration()
     {
         mRecyclerView=(RecyclerView)findViewById(R.id.RecyclerView);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
         mAddButton=(Button)findViewById(R.id.ADDButton);
         mAddButton.setOnClickListener(mClickListener);
         feedlist = new ArrayList<>();
@@ -40,10 +47,31 @@ public class MainActivity extends AppCompatActivity {
             final Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.dialog_layout);
             dialog.setTitle(" Enter New Tuple");
-            final TextView mMailEditText, mNameEditText;
+
             Button mADDButton, mDismiss;
             mMailEditText = (EditText) dialog.findViewById(R.id.MailEditText);
             mNameEditText = (EditText) dialog.findViewById(R.id.NameEditText);
+            mNameEditText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Calendar now = Calendar.getInstance();
+                    TimePickerDialog tpd = TimePickerDialog.newInstance(
+                            MainActivity.this,
+                            now.get(Calendar.HOUR_OF_DAY),
+                            now.get(Calendar.MINUTE),
+                            false
+                    );
+                    tpd.setAccentColor(getResources().getColor(R.color.light_orange));
+                    tpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            Log.d("TimePicker", "Dialog was cancelled");
+                        }
+                    });
+                    tpd.show(getFragmentManager(), "Timepickerdialog");
+                }
+            });
             mADDButton = (Button) dialog.findViewById(R.id.AddButton);
             mADDButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -91,4 +119,15 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
         }
     };
+
+    @Override
+    public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int hourOfDayEnd, int minuteEnd) {
+        String hourString = hourOfDay < 10 ? "0"+hourOfDay : ""+hourOfDay;
+        String minuteString = minute < 10 ? "0"+minute : ""+minute;
+        String hourStringEnd = hourOfDayEnd < 10 ? "0"+hourOfDayEnd : ""+hourOfDayEnd;
+        String minuteStringEnd = minuteEnd < 10 ? "0"+minuteEnd : ""+minuteEnd;
+        String time =hourString+":"+minuteString+" -- "+hourStringEnd+":"+minuteStringEnd;
+        mNameEditText.setText(time);
+
+    }
 }
